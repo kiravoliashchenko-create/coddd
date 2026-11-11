@@ -83,8 +83,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 </style>
 
-  <div class="demo-banner">ДЕМО · Учебный прототип · Вымышленные данные · НЕ ЯВЛЯЕТСЯ ДОКУМЕНТОМ</div>
-  <div class="watermark" aria-hidden="true"></div>
+
 
   <header class="topbar">
     <div class="brand">◆ Учёт-Лаб</div>
@@ -97,18 +96,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 
   <main id="view"></main>
 
-  <footer class="foot">
-    Учебный проект для изучения UX и бизнес-процессов электронных госуслуг.
-    Организация, данные и статусы вымышлены. Данные хранятся только в вашем браузере (localStorage).
-    <button id="reset" class="link">Сбросить демо-данные</button>
-  </footer>
-
-  <script>
-/* Учёт-Лаб — учебный прототип электронного кабинета учёта.
- * Всё вымышлено. Данные живут только в localStorage браузера.
- * Сознательно НЕТ: «электронного документа», QR-кодов, экрана для предъявления.
- */
-(() => {
+ 
   "use strict";
 
   const STORE_KEY = "uchet-lab-v1";
@@ -291,8 +279,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <button class="primary mt">Войти как оператор</button>
           </form>
         </div>
-        <p class="notice mt">Это прототип для исследования. Настоящая авторизация (ЭЦП, банковский ID и т.п.)
-        здесь имитируется PIN-кодом.</p>`;
+       
     },
 
     home() {
