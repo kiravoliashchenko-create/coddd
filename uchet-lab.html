@@ -1,0 +1,636 @@
+<title>Учёт-Лаб</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+:root { --bg: #eef2f3; --card: #ffffff; --ink: #1b2428; --muted: #5d6b72; --line: #d6dfe2; --accent: #1f6f8b; --accent-ink: #ffffff; --warn: #9a5b00; --ok: #2e7d32; --bad: #b3261e; --demo: #c2185b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #12181b; --card: #1a2226; --ink: #e4ebee; --muted: #93a3aa; --line: #2c383e; --accent: #5bb3d1; --accent-ink: #0b1418; --warn: #e0a64a; --ok: #6cc070; --bad: #f08a80; --demo: #d6336c; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #12181b; --card: #1a2226; --ink: #e4ebee; --muted: #93a3aa; --line: #2c383e; --accent: #5bb3d1; --accent-ink: #0b1418; --warn: #e0a64a; --ok: #6cc070; --bad: #f08a80; --demo: #d6336c; color-scheme: dark; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg); color: var(--ink);
+}
+.demo-banner {
+  background: var(--demo); color: #fff; text-align: center;
+  font-weight: 700; letter-spacing: .04em; font-size: 13px; padding: 6px 12px;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+}
+.watermark {
+  position: fixed; inset: 0; pointer-events: none; z-index: 10; opacity: .07;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='160'><text x='10' y='90' transform='rotate(-20 160 80)' font-family='sans-serif' font-size='28' font-weight='700' fill='%23c2185b'>ДЕМО · НЕ ДОКУМЕНТ</text></svg>");
+}
+.topbar {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+  padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--card); border-bottom: 1px solid var(--line);
+}
+.brand { font-weight: 800; color: var(--accent); font-size: 18px; }
+nav { display: flex; flex-wrap: wrap; gap: 4px; }
+nav button { background: none; border: 0; color: var(--ink); padding: 6px 10px; border-radius: 8px; cursor: pointer; font: inherit; }
+nav button.active { background: var(--accent); color: var(--accent-ink); }
+.who { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; }
+
+main { max-width: 960px; margin: 0 auto; padding-block: 20px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1 { font-size: 22px; margin: 0 0 16px; }
+h2 { font-size: 17px; margin: 0 0 12px; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+.muted { color: var(--muted); }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.kv { display: grid; grid-template-columns: 160px 1fr; gap: 6px 12px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; }
+@media (max-width: 520px) { .kv { grid-template-columns: 1fr; } .kv dd { margin-bottom: 6px; } }
+
+label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+input, select, textarea {
+  width: 100%; padding: 9px 11px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); color: var(--ink); font: inherit;
+}
+textarea { min-height: 80px; resize: vertical; }
+button.primary, button.ghost, button.danger, button.okbtn {
+  font: inherit; padding: 8px 14px; border-radius: 10px; cursor: pointer; border: 1px solid transparent;
+}
+button.primary { background: var(--accent); color: var(--accent-ink); }
+button.okbtn { background: var(--ok); color: #fff; }
+button.danger { background: var(--bad); color: #fff; }
+button.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+button.link { background: none; border: 0; color: var(--accent); cursor: pointer; text-decoration: underline; font: inherit; }
+.mt { margin-top: 14px; }
+
+.badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+.b-new { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+.b-review { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.b-ok { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.b-bad { background: color-mix(in srgb, var(--bad) 16%, transparent); color: var(--bad); }
+.b-info { background: color-mix(in srgb, var(--muted) 16%, transparent); color: var(--muted); }
+
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+
+.timeline { list-style: none; padding: 0; margin: 0; }
+.timeline li { padding: 8px 0 8px 16px; border-left: 2px solid var(--line); position: relative; }
+.timeline li::before { content: ""; position: absolute; left: -6px; top: 14px; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+
+.notice { padding: 10px 12px; border-radius: 10px; background: var(--bg); border: 1px dashed var(--line); }
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 30;
+  background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px;
+}
+.foot { max-width: 960px; margin: 0 auto; padding-block: 16px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); color: var(--muted); font-size: 13px; }
+
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 25; background: var(--demo); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+</style>
+
+  <div class="demo-banner">ДЕМО · Учебный прототип · Вымышленные данные · НЕ ЯВЛЯЕТСЯ ДОКУМЕНТОМ</div>
+  <div class="watermark" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand">◆ Учёт-Лаб</div>
+    <nav id="nav"></nav>
+    <div class="who">
+      <span id="whoami"></span>
+      <button id="logout" class="ghost" hidden>Выйти</button>
+    </div>
+  </header>
+
+  <main id="view"></main>
+
+  <footer class="foot">
+    Учебный проект для изучения UX и бизнес-процессов электронных госуслуг.
+    Организация, данные и статусы вымышлены. Данные хранятся только в вашем браузере (localStorage).
+    <button id="reset" class="link">Сбросить демо-данные</button>
+  </footer>
+
+  <script>
+/* Учёт-Лаб — учебный прототип электронного кабинета учёта.
+ * Всё вымышлено. Данные живут только в localStorage браузера.
+ * Сознательно НЕТ: «электронного документа», QR-кодов, экрана для предъявления.
+ */
+(() => {
+  "use strict";
+
+  const STORE_KEY = "uchet-lab-v1";
+  const DEMO_PIN = "1234";
+
+  const STATUS = {
+    new: { label: "Подано", cls: "b-new" },
+    review: { label: "На рассмотрении", cls: "b-review" },
+    approved: { label: "Одобрено", cls: "b-ok" },
+    rejected: { label: "Отклонено", cls: "b-bad" },
+    withdrawn: { label: "Отозвано", cls: "b-info" },
+  };
+
+  const REQUEST_TYPES = {
+    data_update: "Обновление контактных данных",
+    deferral: "Заявление об отсрочке (учебное)",
+    info_check: "Запрос на сверку данных",
+  };
+
+  const DEFERRAL_GROUNDS = [
+    "Обучение (очная форма)",
+    "Уход за членом семьи",
+    "Трое и более детей",
+    "Состояние здоровья",
+    "Работа на критическом предприятии",
+    "Иное основание",
+  ];
+
+  const REG_STATUS = {
+    registered: "Состоит на учёте",
+    deferred: "Отсрочка (учебный статус)",
+    pending: "Требуется сверка данных",
+  };
+
+  // ---------- хранилище ----------
+  function seed() {
+    const now = Date.now();
+    const day = 86400000;
+    return {
+      citizens: [
+        {
+          id: "C-1001", name: "Тестов Иван Петрович", birth: "1990-04-12",
+          phone: "+000 00 000 0001", email: "ivan@example.test",
+          address: "г. Демоград, ул. Учебная, 1", category: "Резервист (вымышл.)",
+          regStatus: "registered", lastVerified: now - 40 * day,
+        },
+        {
+          id: "C-1002", name: "Примерова Анна Сергеевна", birth: "1995-09-30",
+          phone: "+000 00 000 0002", email: "anna@example.test",
+          address: "г. Демоград, пр. Прототипов, 7", category: "Специалист (вымышл.)",
+          regStatus: "pending", lastVerified: now - 400 * day,
+        },
+      ],
+      requests: [
+        {
+          id: "R-0001", citizenId: "C-1001", type: "info_check", status: "approved",
+          payload: { note: "Прошу сверить место работы" }, files: [],
+          history: [
+            { at: now - 30 * day, by: "C-1001", text: "Заявление подано" },
+            { at: now - 29 * day, by: "OP-1", text: "Взято в работу" },
+            { at: now - 28 * day, by: "OP-1", text: "Одобрено: данные сверены" },
+          ],
+          createdAt: now - 30 * day,
+        },
+      ],
+      notifications: [
+        { id: 1, citizenId: "C-1001", at: now - 28 * day, text: "Заявление R-0001 одобрено", read: true },
+        { id: 2, citizenId: "C-1002", at: now - 2 * day, text: "Пожалуйста, подтвердите актуальность данных", read: false },
+      ],
+      audit: [],
+      operators: [{ id: "OP-1", name: "Оператор Демо" }],
+      seq: { req: 2, notif: 3 },
+    };
+  }
+
+  let db = load();
+  let session = loadSession();
+  let page = null;
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (_) { /* приватный режим и т.п. */ }
+    return seed();
+  }
+  function save() {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); } catch (_) {}
+  }
+  function loadSession() {
+    try { return JSON.parse(sessionStorage.getItem(STORE_KEY + ":s")) || null; } catch (_) { return null; }
+  }
+  function saveSession() {
+    try {
+      if (session) sessionStorage.setItem(STORE_KEY + ":s", JSON.stringify(session));
+      else sessionStorage.removeItem(STORE_KEY + ":s");
+    } catch (_) {}
+  }
+
+  // ---------- утилиты ----------
+  const $ = (sel, root = document) => root.querySelector(sel);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmt = (t) => new Date(t).toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" });
+  const fmtDate = (t) => new Date(t).toLocaleDateString("ru-RU");
+  const badge = (st) => `<span class="badge ${STATUS[st].cls}">${STATUS[st].label}</span>`;
+  const citizen = (id) => db.citizens.find((c) => c.id === id);
+  const actorName = (id) => (citizen(id)?.name) || (db.operators.find((o) => o.id === id)?.name) || id;
+
+  function toast(msg) {
+    const el = document.createElement("div");
+    el.className = "toast";
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2200);
+  }
+  function audit(text) {
+    db.audit.unshift({ at: Date.now(), by: session?.id || "system", text });
+    db.audit = db.audit.slice(0, 300);
+  }
+  function notify(citizenId, text) {
+    db.notifications.unshift({ id: db.seq.notif++, citizenId, at: Date.now(), text, read: false });
+  }
+
+  // ---------- навигация ----------
+  const CITIZEN_PAGES = [
+    ["home", "Главная"], ["profile", "Мои данные"], ["requests", "Заявления"], ["notifications", "Уведомления"],
+  ];
+  const OPERATOR_PAGES = [
+    ["queue", "Очередь"], ["citizens", "Граждане"], ["stats", "Статистика"], ["audit", "Журнал"],
+  ];
+
+  function renderChrome() {
+    const nav = $("#nav");
+    const pages = !session ? [] : session.role === "citizen" ? CITIZEN_PAGES : OPERATOR_PAGES;
+    nav.innerHTML = pages.map(([k, l]) => {
+      let extra = "";
+      if (k === "notifications") {
+        const n = db.notifications.filter((x) => x.citizenId === session.id && !x.read).length;
+        if (n) extra = ` (${n})`;
+      }
+      if (k === "queue") {
+        const n = db.requests.filter((r) => r.status === "new").length;
+        if (n) extra = ` (${n})`;
+      }
+      return `<button data-page="${k}" class="${page === k ? "active" : ""}">${l}${extra}</button>`;
+    }).join("");
+    $("#whoami").textContent = session ? actorName(session.id) : "";
+    $("#logout").hidden = !session;
+  }
+
+  function go(p, arg) {
+    page = p;
+    renderChrome();
+    const v = $("#view");
+    const fn = VIEWS[p] || VIEWS.login;
+    v.innerHTML = fn(arg);
+    BIND[p]?.(v, arg);
+    window.scrollTo(0, 0);
+  }
+
+  // ---------- экраны ----------
+  const VIEWS = {
+    login() {
+      return `
+        <h1>Вход в учебный кабинет</h1>
+        <div class="grid">
+          <form class="card" id="f-cit">
+            <h2>Гражданин</h2>
+            <label>Демо-пользователь</label>
+            <select name="id">${db.citizens.map((c) => `<option value="${c.id}">${esc(c.name)} (${c.id})</option>`).join("")}</select>
+            <label>PIN (демо: ${DEMO_PIN})</label>
+            <input name="pin" type="password" inputmode="numeric" autocomplete="off" required>
+            <button class="primary mt">Войти</button>
+          </form>
+          <form class="card" id="f-op">
+            <h2>Оператор</h2>
+            <p class="muted">Рассматривает заявления, ведёт реестр.</p>
+            <label>PIN (демо: ${DEMO_PIN})</label>
+            <input name="pin" type="password" inputmode="numeric" autocomplete="off" required>
+            <button class="primary mt">Войти как оператор</button>
+          </form>
+        </div>
+        <p class="notice mt">Это прототип для исследования. Настоящая авторизация (ЭЦП, банковский ID и т.п.)
+        здесь имитируется PIN-кодом.</p>`;
+    },
+
+    home() {
+      const c = citizen(session.id);
+      const mine = db.requests.filter((r) => r.citizenId === c.id);
+      const active = mine.filter((r) => r.status === "new" || r.status === "review");
+      const stale = Date.now() - c.lastVerified > 365 * 86400000;
+      return `
+        <h1>Здравствуйте, ${esc(c.name.split(" ")[1] || c.name)}</h1>
+        <div class="grid">
+          <div class="card">
+            <h2>Статус в реестре</h2>
+            <p><strong>${REG_STATUS[c.regStatus]}</strong></p>
+            <p class="muted">Последняя сверка данных: ${fmtDate(c.lastVerified)}</p>
+            ${stale ? `<p class="badge b-review">Данные не сверялись более года</p>` : ""}
+          </div>
+          <div class="card">
+            <h2>Активные заявления</h2>
+            <p style="font-size:28px;margin:0">${active.length}</p>
+            <button class="link" data-go="requests">Перейти к заявлениям →</button>
+          </div>
+          <div class="card">
+            <h2>Быстрые действия</h2>
+            <div class="row">
+              <button class="primary" data-go="new-request" data-type="data_update">Обновить данные</button>
+              <button class="ghost" data-go="new-request" data-type="deferral">Подать на отсрочку</button>
+              <button class="ghost" data-go="new-request" data-type="info_check">Запросить сверку</button>
+            </div>
+          </div>
+        </div>`;
+    },
+
+    profile() {
+      const c = citizen(session.id);
+      return `
+        <h1>Мои данные</h1>
+        <div class="card">
+          <dl class="kv">
+            <dt>Идентификатор</dt><dd>${c.id}</dd>
+            <dt>ФИО</dt><dd>${esc(c.name)}</dd>
+            <dt>Дата рождения</dt><dd>${fmtDate(c.birth)}</dd>
+            <dt>Категория</dt><dd>${esc(c.category)}</dd>
+            <dt>Телефон</dt><dd>${esc(c.phone)}</dd>
+            <dt>E-mail</dt><dd>${esc(c.email)}</dd>
+            <dt>Адрес</dt><dd>${esc(c.address)}</dd>
+            <dt>Статус</dt><dd>${REG_STATUS[c.regStatus]}</dd>
+          </dl>
+          <p class="muted mt">Изменения вносятся через заявление и вступают в силу после проверки оператором.</p>
+          <button class="primary" data-go="new-request" data-type="data_update">Изменить контактные данные</button>
+        </div>`;
+    },
+
+    requests() {
+      const mine = db.requests.filter((r) => r.citizenId === session.id).sort((a, b) => b.createdAt - a.createdAt);
+      return `
+        <div class="row" style="justify-content:space-between"><h1>Мои заявления</h1>
+          <button class="primary" data-go="new-request">+ Новое заявление</button></div>
+        <div class="card table-wrap">
+          ${mine.length ? `<table>
+            <tr><th>№</th><th>Тип</th><th>Дата</th><th>Статус</th><th></th></tr>
+            ${mine.map((r) => `<tr>
+              <td>${r.id}</td><td>${REQUEST_TYPES[r.type]}</td><td>${fmtDate(r.createdAt)}</td>
+              <td>${badge(r.status)}</td><td><button class="link" data-open="${r.id}">Открыть</button></td></tr>`).join("")}
+          </table>` : `<p class="muted">Заявлений пока нет.</p>`}
+        </div>`;
+    },
+
+    "new-request"(type = "data_update") {
+      const c = citizen(session.id);
+      return `
+        <h1>Новое заявление</h1>
+        <form class="card" id="f-req">
+          <label>Тип заявления</label>
+          <select name="type" id="req-type">
+            ${Object.entries(REQUEST_TYPES).map(([k, l]) => `<option value="${k}" ${k === type ? "selected" : ""}>${l}</option>`).join("")}
+          </select>
+
+          <div data-for="data_update">
+            <label>Новый телефон</label><input name="phone" value="${esc(c.phone)}">
+            <label>Новый e-mail</label><input name="email" type="email" value="${esc(c.email)}">
+            <label>Новый адрес</label><input name="address" value="${esc(c.address)}">
+          </div>
+
+          <div data-for="deferral">
+            <label>Основание</label>
+            <select name="ground">${DEFERRAL_GROUNDS.map((g) => `<option>${g}</option>`).join("")}</select>
+            <label>Подтверждающие документы (сохраняется только имя файла)</label>
+            <input name="files" type="file" multiple>
+          </div>
+
+          <label>Комментарий</label>
+          <textarea name="note" placeholder="Необязательно"></textarea>
+
+          <label class="row" style="color:var(--ink)"><input type="checkbox" name="agree" required style="width:auto">
+            Подтверждаю достоверность данных (учебная форма)</label>
+          <div class="row mt">
+            <button class="primary">Отправить</button>
+            <button type="button" class="ghost" data-go="requests">Отмена</button>
+          </div>
+        </form>`;
+    },
+
+    request(id) {
+      const r = db.requests.find((x) => x.id === id);
+      if (!r) return `<p>Не найдено</p>`;
+      const c = citizen(r.citizenId);
+      const isOp = session.role === "operator";
+      const p = r.payload;
+      return `
+        <button class="link" data-go="${isOp ? "queue" : "requests"}">← Назад</button>
+        <h1>${r.id} · ${REQUEST_TYPES[r.type]}</h1>
+        <div class="grid">
+          <div class="card">
+            <h2>Сведения</h2>
+            <dl class="kv">
+              <dt>Статус</dt><dd>${badge(r.status)}</dd>
+              <dt>Заявитель</dt><dd>${esc(c.name)} (${c.id})</dd>
+              <dt>Подано</dt><dd>${fmt(r.createdAt)}</dd>
+              ${p.ground ? `<dt>Основание</dt><dd>${esc(p.ground)}</dd>` : ""}
+              ${p.phone ? `<dt>Телефон</dt><dd>${esc(c.phone)} → <b>${esc(p.phone)}</b></dd>` : ""}
+              ${p.email ? `<dt>E-mail</dt><dd>${esc(c.email)} → <b>${esc(p.email)}</b></dd>` : ""}
+              ${p.address ? `<dt>Адрес</dt><dd>${esc(c.address)} → <b>${esc(p.address)}</b></dd>` : ""}
+              ${p.note ? `<dt>Комментарий</dt><dd>${esc(p.note)}</dd>` : ""}
+              ${r.files.length ? `<dt>Файлы</dt><dd>${r.files.map(esc).join("<br>")}</dd>` : ""}
+            </dl>
+          </div>
+          <div class="card">
+            <h2>Ход рассмотрения</h2>
+            <ul class="timeline">${r.history.map((h) => `<li><div>${esc(h.text)}</div>
+              <div class="muted" style="font-size:13px">${fmt(h.at)} · ${esc(actorName(h.by))}</div></li>`).join("")}</ul>
+          </div>
+        </div>
+        ${!isOp && r.status === "new" ? `<button class="ghost mt" id="withdraw">Отозвать заявление</button>` : ""}
+        ${isOp && (r.status === "new" || r.status === "review") ? `
+          <form class="card mt" id="f-decide">
+            <h2>Решение оператора</h2>
+            ${r.status === "new" ? `<button type="button" class="ghost" id="take">Взять в работу</button>` : ""}
+            <label>Комментарий для заявителя</label>
+            <textarea name="comment" required></textarea>
+            <div class="row mt">
+              <button class="okbtn" name="act" value="approve">Одобрить</button>
+              <button class="danger" name="act" value="reject">Отклонить</button>
+            </div>
+          </form>` : ""}`;
+    },
+
+    notifications() {
+      const list = db.notifications.filter((n) => n.citizenId === session.id);
+      return `
+        <h1>Уведомления</h1>
+        <div class="card">
+          ${list.length ? `<ul class="timeline">${list.map((n) => `<li style="${n.read ? "opacity:.6" : ""}">
+            <div>${esc(n.text)}</div><div class="muted" style="font-size:13px">${fmt(n.at)}</div></li>`).join("")}</ul>`
+          : `<p class="muted">Уведомлений нет.</p>`}
+        </div>`;
+    },
+
+    queue(filter = "active") {
+      const flt = {
+        active: (r) => r.status === "new" || r.status === "review",
+        all: () => true,
+        done: (r) => r.status === "approved" || r.status === "rejected" || r.status === "withdrawn",
+      };
+      const list = db.requests.filter(flt[filter]).sort((a, b) => a.createdAt - b.createdAt);
+      return `
+        <h1>Очередь заявлений</h1>
+        <div class="row" style="margin-bottom:12px">
+          ${[["active", "Активные"], ["done", "Завершённые"], ["all", "Все"]].map(([k, l]) =>
+            `<button class="${k === filter ? "primary" : "ghost"}" data-filter="${k}">${l}</button>`).join("")}
+        </div>
+        <div class="card table-wrap">
+          ${list.length ? `<table>
+            <tr><th>№</th><th>Заявитель</th><th>Тип</th><th>Подано</th><th>Статус</th><th></th></tr>
+            ${list.map((r) => `<tr><td>${r.id}</td><td>${esc(citizen(r.citizenId).name)}</td>
+              <td>${REQUEST_TYPES[r.type]}</td><td>${fmt(r.createdAt)}</td><td>${badge(r.status)}</td>
+              <td><button class="link" data-open="${r.id}">Открыть</button></td></tr>`).join("")}
+          </table>` : `<p class="muted">Пусто.</p>`}
+        </div>`;
+    },
+
+    citizens() {
+      return `
+        <h1>Реестр (вымышленный)</h1>
+        <div class="card table-wrap"><table>
+          <tr><th>ID</th><th>ФИО</th><th>Категория</th><th>Статус</th><th>Сверка</th><th></th></tr>
+          ${db.citizens.map((c) => `<tr><td>${c.id}</td><td>${esc(c.name)}</td><td>${esc(c.category)}</td>
+            <td>${REG_STATUS[c.regStatus]}</td><td>${fmtDate(c.lastVerified)}</td>
+            <td><button class="link" data-remind="${c.id}">Напомнить о сверке</button></td></tr>`).join("")}
+        </table></div>`;
+    },
+
+    stats() {
+      const by = (k) => db.requests.filter((r) => r.status === k).length;
+      const done = db.requests.filter((r) => r.decidedAt);
+      const avgH = done.length ? (done.reduce((s, r) => s + (r.decidedAt - r.createdAt), 0) / done.length / 3600000).toFixed(1) : "—";
+      return `
+        <h1>Статистика</h1>
+        <div class="grid">
+          ${Object.keys(STATUS).map((k) => `<div class="card"><div class="muted">${STATUS[k].label}</div>
+            <div style="font-size:28px">${by(k)}</div></div>`).join("")}
+          <div class="card"><div class="muted">Среднее время решения (ч)</div><div style="font-size:28px">${avgH}</div></div>
+        </div>`;
+    },
+
+    audit() {
+      return `
+        <h1>Журнал действий</h1>
+        <div class="card table-wrap">
+          ${db.audit.length ? `<table><tr><th>Время</th><th>Кто</th><th>Действие</th></tr>
+            ${db.audit.map((a) => `<tr><td>${fmt(a.at)}</td><td>${esc(actorName(a.by))}</td><td>${esc(a.text)}</td></tr>`).join("")}
+          </table>` : `<p class="muted">Записей пока нет.</p>`}
+        </div>`;
+    },
+  };
+
+  // ---------- обработчики ----------
+  const BIND = {
+    login(v) {
+      $("#f-cit", v).onsubmit = (e) => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        if (f.get("pin") !== DEMO_PIN) return toast("Неверный PIN");
+        session = { role: "citizen", id: f.get("id") };
+        saveSession(); audit("Вход в кабинет"); save(); go("home");
+      };
+      $("#f-op", v).onsubmit = (e) => {
+        e.preventDefault();
+        if (new FormData(e.target).get("pin") !== DEMO_PIN) return toast("Неверный PIN");
+        session = { role: "operator", id: "OP-1" };
+        saveSession(); audit("Вход оператора"); save(); go("queue");
+      };
+    },
+
+    "new-request"(v) {
+      const sel = $("#req-type", v);
+      const sync = () => v.querySelectorAll("[data-for]").forEach((b) => {
+        const on = b.dataset.for === sel.value;
+        b.hidden = !on;
+        b.querySelectorAll("input,select").forEach((i) => (i.disabled = !on));
+      });
+      sel.onchange = sync; sync();
+
+      $("#f-req", v).onsubmit = (e) => {
+        e.preventDefault();
+        const f = new FormData(e.target);
+        const type = f.get("type");
+        const c = citizen(session.id);
+        const payload = { note: (f.get("note") || "").trim() };
+        let files = [];
+        if (type === "data_update") {
+          for (const k of ["phone", "email", "address"]) {
+            const val = (f.get(k) || "").trim();
+            if (val && val !== c[k]) payload[k] = val;
+          }
+          if (!payload.phone && !payload.email && !payload.address) return toast("Вы ничего не изменили");
+        }
+        if (type === "deferral") {
+          payload.ground = f.get("ground");
+          files = f.getAll("files").filter((x) => x && x.name).map((x) => x.name);
+        }
+        const id = "R-" + String(db.seq.req++).padStart(4, "0");
+        db.requests.push({
+          id, citizenId: c.id, type, status: "new", payload, files, createdAt: Date.now(),
+          history: [{ at: Date.now(), by: c.id, text: "Заявление подано" }],
+        });
+        notify(c.id, `Заявление ${id} принято и ожидает рассмотрения`);
+        audit(`Подано заявление ${id}`);
+        save(); toast("Заявление отправлено"); go("request", id);
+      };
+    },
+
+    request(v, id) {
+      const r = db.requests.find((x) => x.id === id);
+      if (!r) return;
+      const w = $("#withdraw", v);
+      if (w) w.onclick = () => {
+        r.status = "withdrawn";
+        r.history.push({ at: Date.now(), by: session.id, text: "Заявление отозвано заявителем" });
+        audit(`Отозвано ${id}`); save(); go("request", id);
+      };
+      const take = $("#take", v);
+      if (take) take.onclick = () => {
+        r.status = "review";
+        r.history.push({ at: Date.now(), by: session.id, text: "Взято в работу" });
+        notify(r.citizenId, `Заявление ${id} взято в работу`);
+        audit(`Взято в работу ${id}`); save(); go("request", id);
+      };
+      const f = $("#f-decide", v);
+      if (f) f.onsubmit = (e) => {
+        e.preventDefault();
+        const act = e.submitter?.value;
+        const comment = new FormData(f).get("comment").trim();
+        const c = citizen(r.citizenId);
+        if (act === "approve") {
+          r.status = "approved";
+          if (r.type === "data_update") for (const k of ["phone", "email", "address"]) if (r.payload[k]) c[k] = r.payload[k];
+          if (r.type === "deferral") c.regStatus = "deferred";
+          c.lastVerified = Date.now();
+        } else {
+          r.status = "rejected";
+        }
+        r.decidedAt = Date.now();
+        r.history.push({ at: Date.now(), by: session.id, text: `${STATUS[r.status].label}: ${comment}` });
+        notify(r.citizenId, `Заявление ${id}: ${STATUS[r.status].label.toLowerCase()}. ${comment}`);
+        audit(`${STATUS[r.status].label} ${id}`); save(); toast("Решение сохранено"); go("request", id);
+      };
+    },
+
+    notifications() {
+      db.notifications.forEach((n) => { if (n.citizenId === session.id) n.read = true; });
+      save(); renderChrome();
+    },
+
+    citizens(v) {
+      v.querySelectorAll("[data-remind]").forEach((b) => (b.onclick = () => {
+        notify(b.dataset.remind, "Оператор просит подтвердить актуальность ваших данных");
+        audit(`Напоминание о сверке для ${b.dataset.remind}`); save(); toast("Уведомление отправлено");
+      }));
+    },
+  };
+
+  // ---------- глобальные клики ----------
+  document.addEventListener("click", (e) => {
+    const t = e.target.closest("button");
+    if (!t) return;
+    if (t.dataset.page) return go(t.dataset.page);
+    if (t.dataset.go) return go(t.dataset.go, t.dataset.type);
+    if (t.dataset.open) return go("request", t.dataset.open);
+    if (t.dataset.filter) return go("queue", t.dataset.filter);
+  });
+  $("#logout").onclick = () => { audit("Выход"); save(); session = null; saveSession(); go("login"); };
+  $("#reset").onclick = () => {
+    const b = $("#reset");
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Нажмите ещё раз для сброса"; setTimeout(() => { delete b.dataset.armed; b.textContent = "Сбросить демо-данные"; }, 3000); return; }
+    delete b.dataset.armed; b.textContent = "Сбросить демо-данные";
+    db = seed(); save(); session = null; saveSession(); go("login");
+  };
+
+  go(session ? (session.role === "citizen" ? "home" : "queue") : "login");
+})();
+</script>
