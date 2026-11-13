@@ -14,10 +14,7 @@ body {
   font-weight: 700; letter-spacing: .04em; font-size: 13px; padding: 6px 12px;
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
 }
-.watermark {
-  position: fixed; inset: 0; pointer-events: none; z-index: 10; opacity: .07;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='160'><text x='10' y='90' transform='rotate(-20 160 80)' font-family='sans-serif' font-size='28' font-weight='700' fill='%23c2185b'>ДЕМО · НЕ ДОКУМЕНТ</text></svg>");
-}
+
 .topbar {
   display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
   padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--card); border-bottom: 1px solid var(--line);
@@ -98,16 +95,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
   <main id="view"></main>
 
   <footer class="foot">
-    Учебный проект для изучения UX и бизнес-процессов электронных госуслуг.
-    Организация, данные и статусы вымышлены. Данные хранятся только в вашем браузере (localStorage).
+  
     <button id="reset" class="link">Сбросить демо-данные</button>
   </footer>
 
   <script>
-/* Учёт-Лаб — учебный прототип электронного кабинета учёта.
- * Всё вымышлено. Данные живут только в localStorage браузера.
- * Сознательно НЕТ: «электронного документа», QR-кодов, экрана для предъявления.
- */
+
 (() => {
   "use strict";
 
@@ -291,8 +284,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
             <button class="primary mt">Войти как оператор</button>
           </form>
         </div>
-        <p class="notice mt">Это прототип для исследования. Настоящая авторизация (ЭЦП, банковский ID и т.п.)
-        здесь имитируется PIN-кодом.</p>`;
+        <p class="notice mt"></p>`;
     },
 
     home() {
